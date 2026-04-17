@@ -51,7 +51,7 @@ pool.connect()
 })();
 
 /* ========================= */
-/* 🔐 ROTAS DE USUÁRIO */
+/*  ROTAS DE USUÁRIO */
 /* ========================= */
 
 // cadastro
@@ -87,7 +87,7 @@ app.post('/login', async (req,res)=>{
 });
 
 /* ========================= */
-/* 📂 ROTAS DE TAREFAS */
+/*  ROTAS DE TAREFAS */
 /* ========================= */
 
 // buscar tarefas do usuário
