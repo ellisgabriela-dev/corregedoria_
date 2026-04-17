@@ -23,9 +23,13 @@ function mostrarSistema(){
 /* API */
 
 async function carregarTasks(){
-  const res = await fetch(`${API}/tarefas`);
-  tasks = await res.json();
-  render();
+  try{
+    const res = await fetch(`${API}/tarefas`);
+    tasks = await res.json();
+    render();
+  }catch(error){
+    console.error("Erro ao carregar tarefas:", error);
+  }
 }
 
 async function addTask(){
@@ -47,6 +51,10 @@ async function addTask(){
       prioridade:priority
     })
   });
+
+  // limpa campos
+  document.getElementById("taskInput").value = "";
+  document.getElementById("date").value = "";
 
   carregarTasks();
 }
@@ -91,3 +99,8 @@ function render(){
     list.appendChild(li);
   });
 }
+
+/* CARREGAR AUTOMATICAMENTE */
+window.onload = () => {
+  carregarTasks();
+};
