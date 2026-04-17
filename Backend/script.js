@@ -1,4 +1,4 @@
-const API = "https://agenda-api-9z5t.onrender.com";
+const API = "https://agenda-api-9z5t.onrender.com/tarefas/:usuario_id";
 
 let tasks = [];
 let usuarioLogado = null;
