@@ -1,6 +1,7 @@
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 
 const app = express();
 
@@ -21,7 +22,6 @@ pool.connect()
 (async () => {
   try {
 
-    // tabela de usuários
     await pool.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -30,13 +30,15 @@ pool.connect()
       )
     `);
 
-     await pool.query(`
-      INSERT INTO usuarios (usuario, senha)
-      VALUES ('admin', '12345')
-      ON CONFLICT (usuario) DO NOTHING;
-      `);
+    // 🔐 senha com hash
+    const senhaHash = await bcrypt.hash('12345', 10);
 
-    // tabela de tarefas com usuário
+    await pool.query(`
+      INSERT INTO usuarios (usuario, senha)
+      VALUES ($1, $2)
+      ON CONFLICT (usuario) DO NOTHING;
+    `, ['admin', senhaHash]);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tarefas (
         id SERIAL PRIMARY KEY,
@@ -56,18 +58,21 @@ pool.connect()
   }
 })();
 
-/* ========================= */
-/*  ROTAS DE USUÁRIO */
-/* ========================= */
+
+// =========================
+// USUÁRIOS
+// =========================
 
 // cadastro
 app.post('/register', async (req,res)=>{
   const { usuario, senha } = req.body;
 
   try{
+    const hash = await bcrypt.hash(senha, 10);
+
     await pool.query(
-      'INSERT INTO usuarios (usuario,senha) VALUES ($1,$2)',
-      [usuario, senha]
+      'INSERT INTO usuarios (usuario, senha) VALUES ($1, $2)',
+      [usuario, hash]
     );
 
     res.send("Usuário criado");
@@ -76,27 +81,42 @@ app.post('/register', async (req,res)=>{
   }
 });
 
-// login
+
+// login (CORRIGIDO)
 app.post('/login', async (req,res)=>{
   const { usuario, senha } = req.body;
 
-  const result = await pool.query(
-    'SELECT * FROM usuarios WHERE usuario=$1 AND senha=$2',
-    [usuario, senha]
-  );
+  try{
+    const result = await pool.query(
+      'SELECT * FROM usuarios WHERE usuario=$1',
+      [usuario]
+    );
 
-  if(result.rows.length > 0){
-    res.json(result.rows[0]);
-  }else{
-    res.status(401).send("Login inválido");
+    if(result.rows.length === 0){
+      return res.status(401).send("Usuário não encontrado");
+    }
+
+    const user = result.rows[0];
+
+    const senhaValida = await bcrypt.compare(senha, user.senha);
+
+    if(!senhaValida){
+      return res.status(401).send("Senha incorreta");
+    }
+
+    res.json(user);
+
+  }catch(err){
+    res.status(500).send("Erro no servidor");
   }
 });
 
-/* ========================= */
-/*  ROTAS DE TAREFAS */
-/* ========================= */
 
-// buscar tarefas do usuário
+// =========================
+// TAREFAS
+// =========================
+
+// buscar
 app.get('/tarefas/:usuario_id', async (req,res)=>{
   const result = await pool.query(
     'SELECT * FROM tarefas WHERE usuario_id=$1 ORDER BY id DESC',
@@ -106,7 +126,7 @@ app.get('/tarefas/:usuario_id', async (req,res)=>{
   res.json(result.rows);
 });
 
-// criar tarefa
+// criar
 app.post('/tarefas', async (req,res)=>{
   const { texto, data, categoria, prioridade, usuario_id } = req.body;
 
@@ -133,12 +153,11 @@ app.put('/tarefas/:id', async (req,res)=>{
   res.send("Atualizado");
 });
 
-/* ROTA BASE (OPCIONAL) */
+
 app.get('/', (req,res)=>{
   res.send("API rodando 🚀");
 });
 
-/* PORTA */
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, ()=>{
