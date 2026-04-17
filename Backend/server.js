@@ -30,6 +30,12 @@ pool.connect()
       )
     `);
 
+     await pool.query(`
+      INSERT INTO usuarios (usuario, senha)
+      VALUES ('admin', '12345')
+      ON CONFLICT (usuario) DO NOTHING;
+      `);
+
     // tabela de tarefas com usuário
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tarefas (
