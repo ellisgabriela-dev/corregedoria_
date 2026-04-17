@@ -4,7 +4,7 @@ let tasks = [];
 let usuarioLogado = null;
 
 /* ========================= */
-/* 🔐 LOGIN */
+/*  LOGIN */
 /* ========================= */
 
 async function entrar(){
@@ -35,7 +35,7 @@ async function entrar(){
 }
 
 /* ========================= */
-/* 👤 CADASTRO */
+/*  CADASTRO */
 /* ========================= */
 
 async function cadastrar(){
@@ -61,7 +61,7 @@ async function cadastrar(){
 }
 
 /* ========================= */
-/* 🚪 LOGOUT */
+/*  LOGOUT */
 /* ========================= */
 
 function sair(){
@@ -70,7 +70,7 @@ function sair(){
 }
 
 /* ========================= */
-/* 📺 UI */
+/*  UI */
 /* ========================= */
 
 function mostrarSistema(){
@@ -79,7 +79,7 @@ function mostrarSistema(){
 }
 
 /* ========================= */
-/* 📡 API */
+/*  API */
 /* ========================= */
 
 async function carregarTasks(){
@@ -136,7 +136,7 @@ async function concluirTask(id){
 }
 
 /* ========================= */
-/* 🎨 RENDER */
+/*  RENDER */
 /* ========================= */
 
 function render(){
@@ -163,7 +163,7 @@ function render(){
 }
 
 /* ========================= */
-/* 🚀 AUTO LOGIN */
+/*  AUTO LOGIN */
 /* ========================= */
 
 window.onload = () => {
