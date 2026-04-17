@@ -12,17 +12,29 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-/* CRIAR TABELA AUTOMÁTICO */
-pool.query(`
-CREATE TABLE IF NOT EXISTS tarefas (
-  id SERIAL PRIMARY KEY,
-  texto TEXT,
-  data DATE,
-  categoria TEXT,
-  prioridade TEXT,
-  concluida BOOLEAN DEFAULT false
-)
-`);
+/* TESTE DE CONEXÃO */
+pool.connect()
+  .then(() => console.log("Conectado ao banco"))
+  .catch(err => console.error("Erro na conexão:", err));
+
+/* CRIAR TABELA */
+(async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tarefas (
+        id SERIAL PRIMARY KEY,
+        texto TEXT,
+        data DATE,
+        categoria TEXT,
+        prioridade TEXT,
+        concluida BOOLEAN DEFAULT false
+      )
+    `);
+    console.log("Tabela pronta");
+  } catch (err) {
+    console.error(err);
+  }
+})();
 
 /* ROTAS */
 
@@ -55,6 +67,9 @@ app.put('/tarefas/:id', async (req,res)=>{
   res.send("Atualizado");
 });
 
-app.listen(3000, ()=>{
+/* PORTA CORRETA */
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, ()=>{
   console.log("Servidor rodando");
 });
