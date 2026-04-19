@@ -224,3 +224,10 @@ canvas{
 .status-item span {
   font-size: 22px;
 }
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
