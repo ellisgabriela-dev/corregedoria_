@@ -151,7 +151,7 @@ async function carregarTasks(){
 
     console.log("STATUS:", res.status);
 
-    const text = await res.text();
+    const texto = await res.text();
     console.log("RESPOSTA:", text);
 
     if(!res.ok){
@@ -172,12 +172,12 @@ async function carregarTasks(){
 
 async function addTask(){
 
-  let text = document.getElementById("taskInput").value;
-  let priority = document.getElementById("priority").value;
-  let date = document.getElementById("date").value;
-  let category = document.getElementById("category").value;
+  let texto = document.getElementById("taskInput").value;
+  let prioridade = document.getElementById("priority").value;
+  let data = document.getElementById("date").value;
+  let categoria = document.getElementById("category").value;
 
-  if(text==="") return;
+  if(texto==="") return;
 
   await fetch(`${API}/tarefas`,{
     method:"POST",
