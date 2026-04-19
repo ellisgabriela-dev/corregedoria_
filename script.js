@@ -1,4 +1,4 @@
-const API = "https://corregedoria-pe.onrender.com";
+const API = "https://corregedoria.onrender.com";
 
 let tasks = [];
 let filtroAtual = "";
