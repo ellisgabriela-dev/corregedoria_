@@ -1,4 +1,4 @@
- const API = "https://SEU-BACKEND.onrender.com";";
+ const API = "https://corregedoria-pe.onrender.com";
 
 let tasks = [];
 let filtroAtual = "";
@@ -194,7 +194,6 @@ function render(lista){
 
     li.innerHTML=`
       ${task.texto} - ${task.data}
-
       <button onclick="concluirTask(${task.id})">✔</button>
       <button onclick="excluirTask(${task.id})">🗑</button>
     `;
