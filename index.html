@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,7 +10,6 @@
 
 <link rel="icon" href="icon.png">
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -26,85 +27,60 @@
 </div>
 
 <!-- APP -->
-<div class="app" id="app">
+<div class="app" id="app" style="display:none;">
 
-<button class="logout" onclick="sair()">Sair</button>
+<button onclick="sair()">Sair</button>
 
 <h1>Agenda Corregedoria</h1>
 
 <img src="funase.png" width="200" style="display:block;margin:0 auto 20px;">
 
 <div class="dashboard">
-  <div class="card alerta-vencido">
+  <div>
     <span id="lateCount">0</span>
-    <p>Prazos vencidos</p>
+    <p>Vencidos</p>
   </div>
 
-  <div class="card alerta-proximo">
+  <div>
     <span id="soonCount">0</span>
-    <p>Prazos próximos</p>
+    <p>Próximos</p>
   </div>
 
-  <div class="card alerta-ok">
+  <div>
     <span id="doneCount">0</span>
-    <p>Concluídas</p>
+    <p>Concluídos</p>
   </div>
 </div>
 
-<!-- GRÁFICOS -->
-<div class="graficos">
-  <canvas id="graficoPrioridade"></canvas>
-  <canvas id="graficoCategoria"></canvas>
-</div>
-
-<!-- INPUT AREA -->
 <div class="input-area">
 
   <input type="text" id="taskInput" placeholder="Nova tarefa">
   <input type="date" id="date">
 
   <select id="category">
-    <option value="Demandas">📂 Demandas</option>
-    <option value="Reuniões">⚖ Reuniões</option>
-    <option value="Revisão">👨‍⚖ Revisão</option>
-    <option value="Processos">👨‍⚖ Processos</option>
-  </select>
-
-  <select id="priority">
-    <option value="urgente">🔴 Urgente</option>
-    <option value="medio">🟡 Médio</option>
-    <option value="nao">🟢 Não urgente</option>
-  </select>
-
-  <!-- FILTRO -->
-  <select id="filtroCategoria" onchange="filtrar()">
-    <option value="">Todas</option>
     <option value="Demandas">Demandas</option>
     <option value="Reuniões">Reuniões</option>
     <option value="Revisão">Revisão</option>
     <option value="Processos">Processos</option>
   </select>
 
-  <button onclick="addTask()">+</button>
-  <button class="limpar" onclick="limparHistorico()">🗑</button>
+  <select id="priority">
+    <option value="urgente">Urgente</option>
+    <option value="medio">Médio</option>
+    <option value="nao">Normal</option>
+  </select>
+
+  <button onclick="addTask()">Adicionar</button>
 
 </div>
 
-<!-- LISTA -->
 <ul id="taskList"></ul>
 
-<!-- CALENDÁRIO -->
-<div id="calendar"></div>
+<canvas id="graficoPrioridade"></canvas>
+<canvas id="graficoCategoria"></canvas>
 
-</div>
-
-<footer>
-2026 | PrismCode <img src="prism.png" width="70">
-</footer>
-
-<!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js" defer></script>
+<script src="script.js"></script>
 
 </body>
 </html>
