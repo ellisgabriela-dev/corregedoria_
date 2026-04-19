@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Corregedoria</title>
 
 <link rel="icon" href="icon.png">
@@ -15,9 +17,11 @@
 <div class="login" id="loginBox">
 
 <img src="funase.png" width="150" style="display:block;margin:0 auto 20px;">
+
 <input type="text" id="usuario" placeholder="Usuário">
 <input type="password" id="senha" placeholder="Senha">
-<button onclick="entrar()">Entrar</button>
+
+<button type="button" onclick="entrar()">Entrar</button>
 
 </div>
 
@@ -27,6 +31,7 @@
 <button class="logout" onclick="sair()">Sair</button>
 
 <h1>Agenda Corregedoria</h1>
+
 <img src="funase.png" width="200" style="display:block;margin:0 auto 20px;">
 
 <div class="dashboard">
@@ -85,7 +90,7 @@
 
 </div>
 
-<!-- LISTA DE TAREFAS -->
+<!-- LISTA -->
 <ul id="taskList"></ul>
 
 <!-- CALENDÁRIO -->
@@ -99,7 +104,7 @@
 
 <!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
+<script src="script.js" defer></script>
 
 </body>
 </html>
