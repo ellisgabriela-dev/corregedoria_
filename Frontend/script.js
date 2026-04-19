@@ -57,6 +57,14 @@ window.onload = function(){
   }
 }
 
+function mostrarLoading(){
+  document.getElementById("loading").classList.remove("hidden");
+}
+
+function esconderLoading(){
+  document.getElementById("loading").classList.add("hidden");
+}
+
 /* =========================
 📡 API COM TOKEN
 ========================= */
