@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Corregedoria</title>
+
+<link rel="icon" href="icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginBox">
+
+<img src="funase.png" width="150" style="display:block;margin:0 auto 20px;">
+
+<input type="text" id="usuario" placeholder="Usuário">
+<input type="password" id="senha" placeholder="Senha">
+
+<button type="button" onclick="entrar()">Entrar</button>
+
+<!-- 🔥 CADASTRO (NOVO - ADICIONADO) -->
+<button type="button" onclick="cadastrar()">Cadastrar</button>
+
+<hr style="margin:15px 0;">
+
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none;">
+
+<button onclick="sair()">Sair</button>
+
+<h1>Agenda Corregedoria</h1>
+
+<img src="funase.png" width="200" style="display:block;margin:0 auto 20px;">
+
+<div class="dashboard">
+  <div>
+    <span id="lateCount">0</span>
+    <p>Vencidos</p>
+  </div>
+
+  <div>
+    <span id="soonCount">0</span>
+    <p>Próximos</p>
+  </div>
+
+  <div>
+    <span id="doneCount">0</span>
+    <p>Concluídos</p>
+  </div>
+</div>
+
+<div class="input-area">
+
+  <input type="text" id="taskInput" placeholder="Nova tarefa">
+  <input type="date" id="date">
+
+  <select id="category">
+    <option value="Demandas">Demandas</option>
+    <option value="Reuniões">Reuniões</option>
+    <option value="Revisão">Revisão</option>
+    <option value="Processos">Processos</option>
+  </select>
+
+  <select id="priority">
+    <option value="urgente">Urgente</option>
+    <option value="medio">Médio</option>
+    <option value="nao">Normal</option>
+  </select>
+
+  <button onclick="addTask()">Adicionar</button>
+
+</div>
+
+<ul id="taskList"></ul>
+
+<canvas id="graficoPrioridade"></canvas>
+<canvas id="graficoCategoria"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
