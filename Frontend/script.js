@@ -26,9 +26,16 @@ async function entrar(){
     const data = await res.json();
 
     if(data.token){
+
       localStorage.setItem("token", data.token);
+
+      // 🧠 expiração de 7 dias (login persistente)
+      const expira = Date.now() + (7 * 24 * 60 * 60 * 1000);
+      localStorage.setItem("token_expira", expira);
+
       mostrarSistema();
       carregarTasks();
+
     } else {
       alert("Login inválido");
     }
@@ -38,14 +45,14 @@ async function entrar(){
   }
 }
 
+/* =========================
+🚪 SAIR
+========================= */
+
 function sair(){
   localStorage.removeItem("token");
+  localStorage.removeItem("token_expira");
   location.reload();
-}
-
-function mostrarSistema(){
-  document.getElementById("loginBox").style.display="none";
-  document.getElementById("app").style.display="block";
 }
 
 /* =========================
@@ -85,15 +92,28 @@ async function cadastrar() {
 }
 
 /* =========================
-🚀 AUTO LOGIN
+🚀 AUTO LOGIN (PERSISTENTE)
 ========================= */
 
-window.onload = function(){
+function tokenValido(){
   const token = localStorage.getItem("token");
+  const expira = localStorage.getItem("token_expira");
 
-  if(token){
+  if(!token || !expira) return false;
+
+  if(Date.now() > Number(expira)) return false;
+
+  return true;
+}
+
+window.onload = function(){
+
+  if(tokenValido()){
     mostrarSistema();
     carregarTasks();
+  } else {
+    localStorage.removeItem("token");
+    localStorage.removeItem("token_expira");
   }
 }
 
@@ -106,9 +126,10 @@ function getHeaders(){
 
   return {
     "Content-Type":"application/json",
-    "Authorization": token
+    "Authorization": `Bearer ${token}`
   };
 }
+
 /* =========================
 📥 CARREGAR TAREFAS
 ========================= */
@@ -119,16 +140,23 @@ async function carregarTasks(){
       headers: getHeaders()
     });
 
+    console.log("STATUS /tarefas:", res.status);
+
+    // ❌ NÃO desloga mais automaticamente
     if(res.status === 401){
-      sair();
+      console.warn("Token inválido, mas mantendo sessão");
       return;
+    }
+
+    if(!res.ok){
+      throw new Error("Erro HTTP " + res.status);
     }
 
     tasks = await res.json();
     aplicarFiltroERender();
 
   }catch(e){
-    alert("Erro ao carregar tarefas");
+    console.error("Erro ao carregar tarefas:", e);
   }
 }
 
@@ -256,7 +284,6 @@ function render(lista){
     list.appendChild(li);
   });
 
-  /* ✅ CORRIGIDO (IDs do seu HTML) */
   document.getElementById("vencidos").innerText = vencidas;
   document.getElementById("proximos").innerText = proximas;
   document.getElementById("concluidos").innerText = concluidas;
@@ -299,4 +326,13 @@ function criarGraficos(prioridade, categoria){
       }]
     }
   });
+}
+
+/* =========================
+👁 MOSTRAR SISTEMA
+========================= */
+
+function mostrarSistema(){
+  document.getElementById("loginBox").style.display="none";
+  document.getElementById("app").style.display="block";
 }
