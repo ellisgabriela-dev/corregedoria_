@@ -45,6 +45,45 @@ function mostrarSistema(){
 }
 
 /* =========================
+👤 CADASTRO DE USUÁRIO
+========================= */
+
+async function cadastrar() {
+
+  const usuario = document.getElementById("novoUsuario").value;
+  const senha = document.getElementById("novaSenha").value;
+
+  if (!usuario || !senha) {
+    alert("Preencha usuário e senha");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario, senha })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      alert(data.erro || "Erro ao cadastrar");
+      return;
+    }
+
+    alert("Usuário criado com sucesso!");
+
+    document.getElementById("novoUsuario").value = "";
+    document.getElementById("novaSenha").value = "";
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao conectar com servidor");
+  }
+}
+
+/* =========================
 🚀 AUTO LOGIN
 ========================= */
 
