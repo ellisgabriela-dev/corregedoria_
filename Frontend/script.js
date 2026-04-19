@@ -284,3 +284,28 @@ function criarGraficos(prioridade, categoria){
     }
   });
 }
+
+function atualizarContadores(tarefas) {
+  let vencidos = 0;
+  let proximos = 0;
+  let concluidos = 0;
+
+  const hoje = new Date();
+
+  tarefas.forEach(t => {
+    if (t.concluida) {
+      concluidos++;
+      return;
+    }
+
+    const data = new Date(t.data);
+    const diff = (data - hoje) / (1000 * 60 * 60 * 24);
+
+    if (diff < 0) vencidos++;
+    else if (diff <= 2) proximos++;
+  });
+
+  document.getElementById("vencidos").innerText = vencidos;
+  document.getElementById("proximos").innerText = proximos;
+  document.getElementById("concluidos").innerText = concluidos;
+}
