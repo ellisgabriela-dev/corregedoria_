@@ -29,7 +29,7 @@ async function entrar(){
 
       localStorage.setItem("token", data.token);
 
-      // 🧠 expiração de 7 dias (login persistente)
+      // 🧠 expiração de 7 dias
       const expira = Date.now() + (7 * 24 * 60 * 60 * 1000);
       localStorage.setItem("token_expira", expira);
 
@@ -92,7 +92,7 @@ async function cadastrar() {
 }
 
 /* =========================
-🚀 AUTO LOGIN (PERSISTENTE)
+🚀 AUTO LOGIN
 ========================= */
 
 function tokenValido(){
@@ -131,7 +131,7 @@ function getHeaders(){
 }
 
 /* =========================
-📥 CARREGAR TAREFAS
+📥 CARREGAR TAREFAS (CORRIGIDO)
 ========================= */
 
 async function carregarTasks(){
@@ -145,20 +145,20 @@ async function carregarTasks(){
       method: "GET",
       headers: {
         "Content-Type":"application/json",
-        "Authorization": token
+        "Authorization": `Bearer ${token}`
       }
     });
 
     console.log("STATUS:", res.status);
 
     const texto = await res.text();
-    console.log("RESPOSTA:", text);
+    console.log("RESPOSTA:", texto);
 
     if(!res.ok){
       throw new Error("Erro HTTP " + res.status);
     }
 
-    tasks = JSON.parse(text);
+    tasks = JSON.parse(texto);
     aplicarFiltroERender();
 
   }catch(e){
@@ -167,7 +167,7 @@ async function carregarTasks(){
 }
 
 /* =========================
-➕ ADICIONAR TAREFA
+➕ ADICIONAR TAREFA (CORRIGIDO)
 ========================= */
 
 async function addTask(){
@@ -177,16 +177,16 @@ async function addTask(){
   let data = document.getElementById("date").value;
   let categoria = document.getElementById("category").value;
 
-  if(texto==="") return;
+  if(texto === "") return;
 
   await fetch(`${API}/tarefas`,{
     method:"POST",
     headers: getHeaders(),
     body:JSON.stringify({
-      texto:texto,
-      data:data,
-      categoria:categoria,
-      prioridade:prioridade
+      texto: texto,
+      data: data,
+      categoria: categoria,
+      prioridade: prioridade
     })
   });
 
