@@ -50,8 +50,8 @@ function mostrarSistema(){
 
 async function cadastrar() {
 
-  const usuario = document.getElementById("novoUsuario").value;
-  const senha = document.getElementById("novaSenha").value;
+  const usuario = document.getElementById("usuario").value;
+  const senha = document.getElementById("senha").value;
 
   if (!usuario || !senha) {
     alert("Preencha usuário e senha");
@@ -74,8 +74,8 @@ async function cadastrar() {
 
     alert("Usuário criado com sucesso!");
 
-    document.getElementById("novoUsuario").value = "";
-    document.getElementById("novaSenha").value = "";
+    // 🔥 login automático após cadastro
+    entrar();
 
   } catch (e) {
     console.error(e);
