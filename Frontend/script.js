@@ -9,6 +9,8 @@ let filtroAtual = "";
 
 async function entrar(){
 
+  mostrarLoading();
+
   let usuario = document.getElementById("usuario").value;
   let senha = document.getElementById("senha").value;
 
@@ -21,6 +23,8 @@ async function entrar(){
 
     const data = await res.json();
 
+    esconderLoading();
+
     if(data.token){
       localStorage.setItem("token", data.token);
       mostrarSistema();
@@ -30,6 +34,7 @@ async function entrar(){
     }
 
   }catch(e){
+    esconderLoading();
     alert("Erro ao conectar com servidor");
   }
 }
