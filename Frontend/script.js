@@ -1,3 +1,4 @@
+ console.log("SCRIPT CARREGOU");
  const API = "https://corregedoria-pe.onrender.com";
 
 let tasks = [];
