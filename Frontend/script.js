@@ -136,23 +136,29 @@ function getHeaders(){
 
 async function carregarTasks(){
   try{
+
+    const token = localStorage.getItem("token");
+
+    console.log("TOKEN:", token);
+
     const res = await fetch(`${API}/tarefas`, {
-      headers: getHeaders()
+      method: "GET",
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization": token
+      }
     });
 
-    console.log("STATUS /tarefas:", res.status);
+    console.log("STATUS:", res.status);
 
-    // ❌ NÃO desloga mais automaticamente
-    if(res.status === 401){
-      console.warn("Token inválido, mas mantendo sessão");
-      return;
-    }
+    const text = await res.text();
+    console.log("RESPOSTA:", text);
 
     if(!res.ok){
       throw new Error("Erro HTTP " + res.status);
     }
 
-    tasks = await res.json();
+    tasks = JSON.parse(text);
     aplicarFiltroERender();
 
   }catch(e){
@@ -177,10 +183,10 @@ async function addTask(){
     method:"POST",
     headers: getHeaders(),
     body:JSON.stringify({
-      texto:text,
-      data:date,
-      categoria:category,
-      prioridade:priority
+      texto:texto,
+      data:data,
+      categoria:categoria,
+      prioridade:prioridade
     })
   });
 
