@@ -1,3 +1,7 @@
+/* =========================
+🔧 CONFIG GLOBAL
+========================= */
+
 const API = "https://corregedoriaback.onrender.com";
 
 let tasks = [];
@@ -45,7 +49,7 @@ function mostrarSistema(){
 }
 
 /* =========================
-👤 CADASTRO DE USUÁRIO
+👤 CADASTRO
 ========================= */
 
 async function cadastrar() {
@@ -73,12 +77,9 @@ async function cadastrar() {
     }
 
     alert("Usuário criado com sucesso!");
-
-    // 🔥 login automático após cadastro
     entrar();
 
   } catch (e) {
-    console.error(e);
     alert("Erro ao conectar com servidor");
   }
 }
@@ -97,7 +98,7 @@ window.onload = function(){
 }
 
 /* =========================
-📡 API COM TOKEN
+📡 HEADERS
 ========================= */
 
 function getHeaders(){
@@ -108,6 +109,10 @@ function getHeaders(){
     "Authorization": `Bearer ${token}`
   };
 }
+
+/* =========================
+📥 CARREGAR TAREFAS
+========================= */
 
 async function carregarTasks(){
   try{
@@ -127,6 +132,10 @@ async function carregarTasks(){
     alert("Erro ao carregar tarefas");
   }
 }
+
+/* =========================
+➕ ADICIONAR TAREFA
+========================= */
 
 async function addTask(){
 
@@ -151,6 +160,10 @@ async function addTask(){
   document.getElementById("taskInput").value = "";
   carregarTasks();
 }
+
+/* =========================
+❌ EXCLUIR / ✔ CONCLUIR
+========================= */
 
 async function excluirTask(id){
   await fetch(`${API}/tarefas/${id}`,{
@@ -199,6 +212,7 @@ function render(lista){
   list.innerHTML="";
 
   let hoje = new Date();
+  hoje.setHours(0,0,0,0);
 
   let vencidas = 0;
   let proximas = 0;
@@ -210,7 +224,9 @@ function render(lista){
   lista.forEach(task=>{
 
     let li=document.createElement("li");
+
     let dataTask = new Date(task.data);
+    dataTask.setHours(0,0,0,0);
 
     if(task.concluida){
       li.classList.add("concluida");
@@ -241,9 +257,10 @@ function render(lista){
     list.appendChild(li);
   });
 
-  document.getElementById("lateCount").innerText = vencidas;
-  document.getElementById("soonCount").innerText = proximas;
-  document.getElementById("doneCount").innerText = concluidas;
+  /* ✅ CORRIGIDO (IDs do seu HTML) */
+  document.getElementById("vencidos").innerText = vencidas;
+  document.getElementById("proximos").innerText = proximas;
+  document.getElementById("concluidos").innerText = concluidas;
 
   criarGraficos(prioridade, categoria);
 }
@@ -283,29 +300,4 @@ function criarGraficos(prioridade, categoria){
       }]
     }
   });
-}
-
-function atualizarContadores(tarefas) {
-  let vencidos = 0;
-  let proximos = 0;
-  let concluidos = 0;
-
-  const hoje = new Date();
-
-  tarefas.forEach(t => {
-    if (t.concluida) {
-      concluidos++;
-      return;
-    }
-
-    const data = new Date(t.data);
-    const diff = (data - hoje) / (1000 * 60 * 60 * 24);
-
-    if (diff < 0) vencidos++;
-    else if (diff <= 2) proximos++;
-  });
-
-  document.getElementById("vencidos").innerText = vencidos;
-  document.getElementById("proximos").innerText = proximos;
-  document.getElementById("concluidos").innerText = concluidos;
 }
