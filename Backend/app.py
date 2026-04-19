@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import psycopg2
@@ -9,43 +10,55 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-# 🔐 CONFIG JWT
+# 🔐 JWT
 app.config["JWT_SECRET_KEY"] = "super-secret-key"
 jwt = JWTManager(app)
 
-# 🔌 CONEXÃO
+# 🔌 CONEXÃO BANCO
 def get_conn():
     return psycopg2.connect(
         os.getenv("DATABASE_URL"),
-        sslmode='require'
+        sslmode="require"
     )
 
-# 🧱 CRIAR TABELAS
-with get_conn() as conn:
-    with conn.cursor() as cur:
+# 🧱 CRIAR TABELAS (só uma vez no start)
+def init_db():
+    conn = get_conn()
+    cur = conn.cursor()
 
-        # tarefas
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS tarefas (
-          id SERIAL PRIMARY KEY,
-          texto TEXT,
-          data DATE,
-          categoria TEXT,
-          prioridade TEXT,
-          concluida BOOLEAN DEFAULT false
-        )
-        """)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS tarefas (
+      id SERIAL PRIMARY KEY,
+      texto TEXT,
+      data DATE,
+      categoria TEXT,
+      prioridade TEXT,
+      concluida BOOLEAN DEFAULT false
+    )
+    """)
 
-        # usuários
-        cur.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-          id SERIAL PRIMARY KEY,
-          usuario TEXT UNIQUE,
-          senha TEXT
-        )
-        """)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id SERIAL PRIMARY KEY,
+      usuario TEXT UNIQUE,
+      senha TEXT
+    )
+    """)
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+init_db()
+
+# =========================
+# 🌐 ROTA BASE (TESTE RENDER)
+# =========================
+@app.route("/")
+def home():
+    return jsonify({"status": "API rodando 🚀"})
 
 # =========================
 # 🔐 AUTH
@@ -73,9 +86,9 @@ def register():
         cur.close()
         conn.close()
 
-        return "Usuário criado"
+        return jsonify({"msg": "Usuário criado"}), 201
 
-    except Exception:
+    except Exception as e:
         return jsonify({"erro": "Usuário já existe"}), 400
 
 
@@ -109,109 +122,87 @@ def login():
 
 
 # =========================
-# 📋 TAREFAS (PROTEGIDAS)
+# 📋 TAREFAS
 # =========================
 
 @app.route('/tarefas', methods=['GET'])
 @jwt_required()
 def get_tarefas():
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
+    conn = get_conn()
+    cur = conn.cursor()
 
-        cur.execute('SELECT * FROM tarefas ORDER BY id DESC')
-        rows = cur.fetchall()
+    cur.execute('SELECT * FROM tarefas ORDER BY id DESC')
+    rows = cur.fetchall()
 
-        tarefas = [{
-            "id": r[0],
-            "texto": r[1],
-            "data": str(r[2]),
-            "categoria": r[3],
-            "prioridade": r[4],
-            "concluida": r[5]
-        } for r in rows]
+    cur.close()
+    conn.close()
 
-        cur.close()
-        conn.close()
-
-        return jsonify(tarefas)
-
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
+    return jsonify([{
+        "id": r[0],
+        "texto": r[1],
+        "data": str(r[2]),
+        "categoria": r[3],
+        "prioridade": r[4],
+        "concluida": r[5]
+    } for r in rows])
 
 
 @app.route('/tarefas', methods=['POST'])
 @jwt_required()
 def add_tarefa():
-    try:
-        data = request.json
+    data = request.json
 
-        if not data or not data.get("texto"):
-            return jsonify({"erro": "Texto obrigatório"}), 400
+    conn = get_conn()
+    cur = conn.cursor()
 
-        conn = get_conn()
-        cur = conn.cursor()
+    cur.execute(
+        'INSERT INTO tarefas (texto,data,categoria,prioridade) VALUES (%s,%s,%s,%s)',
+        (data['texto'], data['data'], data['categoria'], data['prioridade'])
+    )
 
-        cur.execute(
-            'INSERT INTO tarefas (texto,data,categoria,prioridade) VALUES (%s,%s,%s,%s)',
-            (data['texto'], data['data'], data['categoria'], data['prioridade'])
-        )
+    conn.commit()
+    cur.close()
+    conn.close()
 
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return "Salvo"
-
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
+    return jsonify({"msg": "Salvo"})
 
 
 @app.route('/tarefas/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_tarefa(id):
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
+    conn = get_conn()
+    cur = conn.cursor()
 
-        cur.execute('DELETE FROM tarefas WHERE id=%s', (id,))
+    cur.execute('DELETE FROM tarefas WHERE id=%s', (id,))
 
-        conn.commit()
-        cur.close()
-        conn.close()
+    conn.commit()
+    cur.close()
+    conn.close()
 
-        return "Deletado"
-
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
+    return jsonify({"msg": "Deletado"})
 
 
 @app.route('/tarefas/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_tarefa(id):
-    try:
-        conn = get_conn()
-        cur = conn.cursor()
+    conn = get_conn()
+    cur = conn.cursor()
 
-        cur.execute(
-            'UPDATE tarefas SET concluida = NOT concluida WHERE id=%s',
-            (id,)
-        )
+    cur.execute(
+        'UPDATE tarefas SET concluida = NOT concluida WHERE id=%s',
+        (id,)
+    )
 
-        conn.commit()
-        cur.close()
-        conn.close()
+    conn.commit()
+    cur.close()
+    conn.close()
 
-        return "Atualizado"
+    return jsonify({"msg": "Atualizado"})
 
-    except Exception as e:
-        return jsonify({"erro": str(e)}), 500
 
+# =========================
+# 🚀 START (IMPORTANTE RENDER)
+# =========================
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-@app.route("/")
-def home():
-    return {"status": "API rodando 🚀"}
-    
+    app.run(host="0.0.0.0", port=10000)
