@@ -698,24 +698,23 @@ async function loadTasks(columnId) {
   const container = document.getElementById(`col-${columnId}`);
   container.innerHTML = '';
 
- tasks.forEach(t => {
+ tasks.forEach(task => {
   const div = document.createElement('div');
 
-  const urgencyClass = t.urgency;
+  div.innerHTML = `
+    <div class="task-card">
+      <h3>${task.title}</h3>
+      <p>${task.description || ''}</p>
+      <small>${task.due_date || ''}</small>
 
-  let isOverdue = false;
+      <button onclick="deleteTask(${task.id})">
+        Excluir
+      </button>
+    </div>
+  `;
 
-  if (t.due_date) {
-    const today = new Date();
-    const due = new Date(t.due_date);
-
-    today.setHours(0,0,0,0);
-    due.setHours(0,0,0,0);
-
-    if (due < today) {
-      isOverdue = true;
-    }
-  }
+  container.appendChild(div);
+});
 
   div.className = `task-card ${urgencyClass} ${isOverdue ? 'overdue' : ''}`;
 
