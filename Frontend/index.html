@@ -192,6 +192,55 @@
   color: var(--urgente);
   font-weight: 600;
 }
+
+  <div id="edit-task-modal" class="modal-overlay hidden" onclick="closeModalOverlay(event,'edit-task-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Editar Tarefa</div>
+      <button class="modal-close" onclick="closeModal('edit-task-modal')">×</button>
+    </div>
+
+    <div class="modal-body">
+
+      <input type="hidden" id="et-id"/>
+
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" id="et-title" />
+      </div>
+
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="et-desc" class="form-control"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Coluna</label>
+        <select id="et-column" class="select-field"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Urgência</label>
+        <select id="et-urgency" class="select-field">
+          <option value="urgente">🔴 Urgente</option>
+          <option value="medio">🟡 Médio</option>
+          <option value="nao_urgente">🟢 Não Urgente</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="et-due"/>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('edit-task-modal')">Cancelar</button>
+      <button class="btn-sm primary" onclick="updateTask()">Salvar</button>
+    </div>
+  </div>
+</div>
   
   /* NOTIFICATIONS */
   .toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; font-size: 14px; z-index: 999; animation: slideIn 0.3s ease; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
@@ -362,7 +411,56 @@
     </div>
   </div>
 </div>
+<!-- MODAL: Editar Tarefa -->
+<div id="edit-task-modal" class="modal-overlay hidden" onclick="closeModalOverlay(event,'edit-task-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Editar Tarefa</div>
+      <button class="modal-close" onclick="closeModal('edit-task-modal')">×</button>
+    </div>
 
+    <div class="modal-body">
+
+      <input type="hidden" id="et-id"/>
+
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" id="et-title" />
+      </div>
+
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea id="et-desc" class="form-control"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Coluna</label>
+        <select id="et-column" class="select-field"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Urgência</label>
+        <select id="et-urgency" class="select-field">
+          <option value="urgente">🔴 Urgente</option>
+          <option value="medio">🟡 Médio</option>
+          <option value="nao_urgente">🟢 Não Urgente</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="et-due"/>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('edit-task-modal')">Cancelar</button>
+      <button class="btn-sm primary" onclick="updateTask()">Salvar</button>
+    </div>
+  </div>
+</div>
+  
 <script>
 const API = "https://corregedoriaback.onrender.com/api";
 
@@ -420,6 +518,56 @@ async function doRegister() {
   }
 }
 
+  async function openEditTask(taskId) {
+  const task = await apiFetch(`/tasks/${taskId}`);
+
+  document.getElementById('et-id').value = task.id;
+  document.getElementById('et-title').value = task.title || '';
+  document.getElementById('et-desc').value = task.description || '';
+  document.getElementById('et-urgency').value = task.urgency || 'medio';
+  document.getElementById('et-due').value = task.due_date || '';
+
+  // carregar colunas
+  const columns = await apiFetch(`/columns/board/${currentBoard.id}`);
+  const select = document.getElementById('et-column');
+  select.innerHTML = '';
+
+  columns.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.title;
+    if (c.id === task.column_id) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  openModal('edit-task-modal');
+}
+
+  async function updateTask() {
+  const id = document.getElementById('et-id').value;
+
+  try {
+    await apiFetch(`/tasks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        title: document.getElementById('et-title').value,
+        description: document.getElementById('et-desc').value,
+        urgency: document.getElementById('et-urgency').value,
+        due_date: document.getElementById('et-due').value,
+        column_id: document.getElementById('et-column').value
+      })
+    });
+
+    closeModal('edit-task-modal');
+    showToast('Tarefa atualizada');
+
+    loadBoard(currentBoard.id);
+
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+  
 function setSession(data) {
   token = data.access_token;
   currentUser = data.user;
@@ -552,14 +700,12 @@ async function loadTasks(columnId) {
 
   const urgencyClass = t.urgency;
 
-  // 🔥 DETECTAR VENCIMENTO
   let isOverdue = false;
 
   if (t.due_date) {
     const today = new Date();
     const due = new Date(t.due_date);
 
-    // zera hora pra comparação correta
     today.setHours(0,0,0,0);
     due.setHours(0,0,0,0);
 
@@ -568,8 +714,10 @@ async function loadTasks(columnId) {
     }
   }
 
-  // 🔥 CLASSES DINÂMICAS
   div.className = `task-card ${urgencyClass} ${isOverdue ? 'overdue' : ''}`;
+
+  // 👇 AQUI
+  div.onclick = () => openEditTask(t.id);
 
   div.innerHTML = `
     <div class="task-card-top">
