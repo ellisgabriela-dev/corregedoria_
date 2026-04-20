@@ -187,6 +187,11 @@
   border: 1px solid var(--urgente);
   background: rgba(244,63,94,0.08);
 }
+
+.task-due.overdue {
+  color: var(--urgente);
+  font-weight: 600;
+}
   
   /* NOTIFICATIONS */
   .toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; font-size: 14px; z-index: 999; animation: slideIn 0.3s ease; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
@@ -545,10 +550,26 @@ async function loadTasks(columnId) {
  tasks.forEach(t => {
   const div = document.createElement('div');
 
-  const urgencyClass = t.urgency; // "urgente", "medio", "nao_urgente"
+  const urgencyClass = t.urgency;
 
-  // 🔥 AQUI é o principal ajuste
-  div.className = `task-card ${urgencyClass}`;
+  // 🔥 DETECTAR VENCIMENTO
+  let isOverdue = false;
+
+  if (t.due_date) {
+    const today = new Date();
+    const due = new Date(t.due_date);
+
+    // zera hora pra comparação correta
+    today.setHours(0,0,0,0);
+    due.setHours(0,0,0,0);
+
+    if (due < today) {
+      isOverdue = true;
+    }
+  }
+
+  // 🔥 CLASSES DINÂMICAS
+  div.className = `task-card ${urgencyClass} ${isOverdue ? 'overdue' : ''}`;
 
   div.innerHTML = `
     <div class="task-card-top">
@@ -558,6 +579,14 @@ async function loadTasks(columnId) {
         ${urgencyClass}
       </div>
     </div>
+
+    ${
+      t.due_date
+        ? `<div class="task-due ${isOverdue ? 'overdue' : ''}">
+            📅 ${t.due_date}
+          </div>`
+        : ''
+    }
   `;
 
   container.appendChild(div);
