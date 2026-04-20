@@ -720,23 +720,32 @@ async function loadTasks(columnId) {
   div.onclick = () => openEditTask(t.id);
 
   div.innerHTML = `
-    <div class="task-card-top">
-      <div class="task-title">${t.title}</div>
+  <div class="task-card-top">
+    <div class="task-title">${t.title}</div>
 
-      <div class="urgency-badge urgency-${urgencyClass}">
-        ${urgencyClass}
-      </div>
+    <div class="urgency-badge urgency-${urgencyClass}">
+      ${urgencyClass}
     </div>
+  </div>
 
-    ${
-      t.due_date
-        ? `<div class="task-due ${isOverdue ? 'overdue' : ''}">
-            📅 ${t.due_date}
-          </div>`
-        : ''
-    }
-  `;
+  ${
+    t.due_date
+      ? `<div class="task-due ${isOverdue ? 'overdue' : ''}">
+          📅 ${t.due_date}
+        </div>`
+      : ''
+  }
 
+  <div class="task-footer">
+    <div class="spacer"></div>
+
+    <button class="btn-sm" onclick="openEditTask(${t.id})">Editar</button>
+    <button class="btn-sm" style="border-color:#f43f5e;color:#f43f5e"
+      onclick="deleteTask(${t.id})">
+      Excluir
+    </button>
+  </div>
+`;
   container.appendChild(div);
 });
 
@@ -783,6 +792,23 @@ function selectUrgency(val) {
   );
 
   document.querySelector(`[data-v="${val}"]`).classList.add('selected');
+}
+
+  async function deleteTask(taskId) {
+  if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+
+  try {
+    await apiFetch(`/tasks/${taskId}`, {
+      method: 'DELETE'
+    });
+
+    showToast("Tarefa excluída com sucesso");
+
+    loadColumns(currentBoard.id);
+
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }
 </script>
 <footer class="footer-simple">
