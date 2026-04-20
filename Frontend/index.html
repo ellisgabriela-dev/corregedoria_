@@ -333,10 +333,22 @@ let selectedUrgency = 'medio';
 
 // ---- HELPERS ----
 async function apiFetch(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-  const r = await fetch(API + path, { headers, ...opts });
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+
+  const r = await fetch(API + path, {
+    headers,
+    ...opts
+  });
+
   const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || 'Erro na requisição');
+
+  if (!r.ok) {
+    throw new Error(data.detail || 'Erro na requisição');
+  }
+
   return data;
 }
 
@@ -353,7 +365,9 @@ function openModal(id) { document.getElementById(id).classList.remove('hidden');
 function closeModalOverlay(e, id) { if (e.target.id === id) closeModal(id); }
 
 function switchTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach((el, i) => el.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+  document.querySelectorAll('.auth-tab').forEach((el, i) =>
+    el.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'))
+  );
   document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
   document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
 }
@@ -363,15 +377,23 @@ async function doLogin() {
   const email = document.getElementById('login-email').value;
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-err');
+
   errEl.classList.add('hidden');
+
   try {
-    const form = new URLSearchParams({ username: email, password: pass });
-    const r = await fetch(`${API}/auth/login`, { method: 'POST', body: form });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.detail);
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: email,
+        password: pass
+      })
+    });
+
     setSession(data);
+
   } catch (e) {
-    errEl.textContent = e.message; errEl.classList.remove('hidden');
+    errEl.textContent = e.message;
+    errEl.classList.remove('hidden');
   }
 }
 
@@ -380,243 +402,65 @@ async function doRegister() {
   const email = document.getElementById('reg-email').value;
   const pass = document.getElementById('reg-pass').value;
   const errEl = document.getElementById('reg-err');
+
   errEl.classList.add('hidden');
+
   try {
-    const data = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password: pass }) });
+    const data = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        email,
+        password: pass
+      })
+    });
+
     setSession(data);
+
   } catch (e) {
-    errEl.textContent = e.message; errEl.classList.remove('hidden');
+    errEl.textContent = e.message;
+    errEl.classList.remove('hidden');
   }
 }
 
 function setSession(data) {
   token = data.access_token;
   currentUser = data.user;
+
   localStorage.setItem('tf_token', token);
   localStorage.setItem('tf_user', JSON.stringify(currentUser));
+
   showApp();
 }
 
 function doLogout() {
   localStorage.removeItem('tf_token');
   localStorage.removeItem('tf_user');
-  token = null; currentUser = null;
+
+  token = null;
+  currentUser = null;
+
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('app-screen').style.display = 'none';
 }
 
-// ---- APP INIT ----
+// ---- INIT ----
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'flex';
+
   document.getElementById('user-name-top').textContent = currentUser.name;
+
   const av = document.getElementById('user-avatar-top');
   av.textContent = currentUser.name[0].toUpperCase();
   av.style.background = currentUser.avatar_color;
-  document.getElementById('home-greeting').textContent = `Olá, ${currentUser.name.split(' ')[0]}! 👋`;
+
+  document.getElementById('home-greeting').textContent =
+    `Olá, ${currentUser.name.split(' ')[0]}! 👋`;
+
   loadBoards();
   loadGlobals();
 }
-
-async function loadGlobals() {
-  try {
-    demandTypes = await apiFetch('/demand-types/');
-    users = await apiFetch('/users/');
-  } catch (e) {}
-}
-
-// ---- HOME ----
-async function loadBoards() {
-  try {
-    const data = await apiFetch('/boards/');
-    const grid = document.getElementById('boards-grid');
-    const all = [...data.owned, ...data.member];
-    grid.innerHTML = '';
-    const colors = ['#4f8ef7', '#7c5cfc', '#f43f5e', '#10b981', '#f59e0b'];
-    all.forEach((b, i) => {
-      const c = document.createElement('div');
-      c.className = 'board-card';
-      c.style.setProperty('--bc', colors[i % colors.length]);
-      c.innerHTML = `
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${colors[i%colors.length]};border-radius:var(--radius) var(--radius) 0 0"></div>
-        <h3>${b.title}</h3>
-        <p>${b.description || 'Sem descrição'}</p>
-        <div class="board-meta"><span>📋 ${b.task_count} tarefa${b.task_count !== 1 ? 's' : ''}</span></div>
-      `;
-      c.onclick = () => openBoard(b.id);
-      grid.appendChild(c);
-    });
-    grid.innerHTML += `<div class="new-board-card" onclick="openNewBoardModal()"><span style="font-size:22px">＋</span><span>Novo Quadro</span></div>`;
-  } catch (e) { showToast('Erro ao carregar quadros', 'error'); }
-}
-
-function openNewBoardModal() { openModal('new-board-modal'); document.getElementById('nb-title').value = ''; document.getElementById('nb-desc').value = ''; }
-async function createBoard() {
-  const title = document.getElementById('nb-title').value.trim();
-  if (!title) return showToast('Informe um título', 'error');
-  try {
-    const b = await apiFetch('/boards/', { method: 'POST', body: JSON.stringify({ title, description: document.getElementById('nb-desc').value }) });
-    closeModal('new-board-modal');
-    showToast('Quadro criado!');
-    openBoard(b.id);
-  } catch (e) { showToast(e.message, 'error'); }
-}
-
-function goHome() {
-  document.getElementById('home-view').style.display = 'block';
-  document.getElementById('board-view').style.display = 'none';
-  loadBoards();
-}
-
-// ---- BOARD VIEW ----
-async function openBoard(boardId) {
-  try {
-    const board = await apiFetch(`/boards/${boardId}`);
-    currentBoard = board;
-    document.getElementById('home-view').style.display = 'none';
-    document.getElementById('board-view').style.display = 'flex';
-    document.getElementById('current-board-title').textContent = board.title;
-    renderKanban(board);
-  } catch (e) { showToast('Erro ao abrir quadro', 'error'); }
-}
-
-function renderKanban(board) {
-  const area = document.getElementById('kanban-area');
-  area.innerHTML = '';
-  board.columns.forEach(col => area.appendChild(renderColumn(col)));
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-column-btn';
-  addBtn.innerHTML = '＋ Nova Coluna';
-  addBtn.onclick = () => openModal('new-col-modal');
-  area.appendChild(addBtn);
-}
-
-function renderColumn(col) {
-  const el = document.createElement('div');
-  el.className = 'column';
-  el.dataset.colId = col.id;
-  el.innerHTML = `
-    <div class="col-header">
-      <div class="col-dot" style="background:${col.color === '#1e293b' ? '#4f8ef7' : col.color === '#1e3a5f' ? '#f59e0b' : '#22c55e'}"></div>
-      <div class="col-title">${col.title}</div>
-      <div class="col-count">${col.tasks.length}</div>
-    </div>
-    <div class="col-tasks" id="tasks-${col.id}"></div>
-    <div class="col-footer">
-      <button class="add-task-btn" onclick="openNewTaskModal('${col.id}')">+ Adicionar tarefa</button>
-    </div>
-  `;
-  const tasksArea = el.querySelector(`#tasks-${col.id}`);
-  col.tasks.forEach(t => tasksArea.appendChild(renderTaskCard(t)));
-  return el;
-}
-
-function renderTaskCard(task) {
-  const card = document.createElement('div');
-  card.className = 'task-card';
-  card.dataset.taskId = task.id;
-
-  const urgencyLabel = { urgente: 'Urgente', medio: 'Médio', nao_urgente: 'Não Urgente' }[task.urgency] || task.urgency;
-  const demandHtml = task.demand_type
-    ? `<div class="task-demand" style="background:${task.demand_type.color}22;color:${task.demand_type.color}">${task.demand_type.name}</div>`
-    : '';
-
-  const today = new Date().toISOString().split('T')[0];
-  const dueHtml = task.due_date
-    ? `<span class="task-due ${task.due_date < today ? 'overdue' : ''}">📅 ${task.due_date}</span>`
-    : '';
-  const assigneeHtml = task.assignee
-    ? `<div class="task-assignee" style="background:${task.assignee.avatar_color}" title="${task.assignee.name}">${task.assignee.name[0]}</div>`
-    : '';
-
-  card.innerHTML = `
-    <div class="task-card-top">
-      <div class="task-title">${task.title}</div>
-      <span class="urgency-badge urgency-${task.urgency}">${urgencyLabel}</span>
-    </div>
-    ${demandHtml}
-    <div class="task-footer">
-      ${dueHtml}
-      <div class="spacer"></div>
-      ${assigneeHtml}
-    </div>
-  `;
-  return card;
-}
-
-// ---- TASK MODAL ----
-let selectedColumnId = null;
-
-function openNewTaskModal(colId = null) {
-  selectedUrgency = 'medio';
-  document.querySelectorAll('.urgency-opt').forEach(el => el.classList.toggle('selected', el.dataset.v === 'medio'));
-
-  const colSel = document.getElementById('nt-column');
-  colSel.innerHTML = '';
-  if (currentBoard) {
-    currentBoard.columns.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id; o.textContent = c.title;
-      if (c.id === colId) o.selected = true;
-      colSel.appendChild(o);
-    });
-  }
-
-  const dtSel = document.getElementById('nt-demand-type');
-  dtSel.innerHTML = '<option value="">Selecione um tipo...</option>';
-  demandTypes.forEach(dt => {
-    const o = document.createElement('option');
-    o.value = dt.id; o.textContent = dt.name;
-    dtSel.appendChild(o);
-  });
-
-  const assignSel = document.getElementById('nt-assignee');
-  assignSel.innerHTML = '<option value="">Sem responsável</option>';
-  users.forEach(u => {
-    const o = document.createElement('option');
-    o.value = u.id; o.textContent = u.name;
-    assignSel.appendChild(o);
-  });
-
-  document.getElementById('nt-title').value = '';
-  document.getElementById('nt-desc').value = '';
-  document.getElementById('nt-due').value = '';
-  openModal('new-task-modal');
-}
-
-function selectUrgency(v) {
-  selectedUrgency = v;
-  document.querySelectorAll('.urgency-opt').forEach(el => el.classList.toggle('selected', el.dataset.v === v));
-}
-
-async function createTask() {
-  const title = document.getElementById('nt-title').value.trim();
-  if (!title) return showToast('Informe um título', 'error');
-  const column_id = document.getElementById('nt-column').value;
-  const demand_type_id = document.getElementById('nt-demand-type').value || null;
-  const assignee_id = document.getElementById('nt-assignee').value || null;
-  const due_date = document.getElementById('nt-due').value || null;
-  try {
-    await apiFetch('/tasks/', { method: 'POST', body: JSON.stringify({ column_id, title, description: document.getElementById('nt-desc').value, demand_type_id, urgency: selectedUrgency, assignee_id, due_date }) });
-    closeModal('new-task-modal');
-    showToast('Tarefa criada!');
-    openBoard(currentBoard.id);
-  } catch (e) { showToast(e.message, 'error'); }
-}
-
-// ---- COLUMN ----
-async function createColumn() {
-  const title = document.getElementById('nc-title').value.trim();
-  if (!title) return showToast('Informe um nome', 'error');
-  try {
-    await apiFetch('/columns/', { method: 'POST', body: JSON.stringify({ board_id: currentBoard.id, title }) });
-    closeModal('new-col-modal');
-    showToast('Coluna criada!');
-    openBoard(currentBoard.id);
-  } catch (e) { showToast(e.message, 'error'); }
-}
-
-// ---- INIT ----
 if (token && currentUser) showApp();
 </script>
 <footer class="footer-simple">
