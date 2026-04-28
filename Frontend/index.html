@@ -583,17 +583,18 @@ function renderTaskCard(task) {
     ? `<div class="task-assignee" style="background:${task.assignee.avatar_color}" title="${task.assignee.name}">${task.assignee.name[0]}</div>`
     : '';
 
-  card.innerHTML = `
-    <div class="task-card-top">
-      <div class="task-title">${task.title}</div>
+ card.innerHTML = `
+  <div class="task-card-top">
+    <div class="task-title">TESTE</div>
 
-      <button onclick="deleteTask('${task.id}')" 
-        style="background:none;border:none;color:#f43f5e;font-size:16px;cursor:pointer">
-        🗑
-      </button>
+    <button onclick="deleteTask(${task.id})"
+      style="background:red;border:none;color:white;">
+      🗑
+    </button>
 
-      <span class="urgency-badge urgency-${task.urgency}">${urgencyLabel}</span>
-    </div>
+    <span>${task.urgency}</span>
+  </div>
+`;
 
     ${demandHtml}
 
