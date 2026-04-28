@@ -27,7 +27,7 @@ db.init_app(app)
 jwt.init_app(app)
 
 # ✅ CORS CORRIGIDO
-CORS(app, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # 📦 (DEV ONLY)
 with app.app_context():
