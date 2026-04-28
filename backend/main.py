@@ -20,12 +20,14 @@ app.config['JWT_SECRET_KEY'] = os.getenv(
 )
 
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 3600
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # 🔌 INIT
 db.init_app(app)
 jwt.init_app(app)
 
-CORS(app, origins=["*"])  # depois restringe
+# ✅ CORS CORRIGIDO
+CORS(app, supports_credentials=True)
 
 # 📦 (DEV ONLY)
 with app.app_context():
@@ -38,4 +40,5 @@ app.register_blueprint(tasks_bp)
 
 # 🚀 START
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
