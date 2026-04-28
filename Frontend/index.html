@@ -681,34 +681,18 @@ async function deleteTask(taskId) {
   if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
 
   try {
-    await apiFetch(`/tasks/${taskId}`, {
-      method: 'DELETE'
-    });
+    await apiFetch(`/tasks/${taskId}`, { method: 'DELETE' });
 
-    showToast('Tarefa excluída!');
-    openBoard(currentBoard.id);
+    showToast('Tarefa excluída com sucesso!');
 
-  } catch (e) {
-    showToast(e.message, 'error');
-  }
-}
-
-  async function deleteTask(taskId) {
-  if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
-
-  try {
-    await apiFetch(`/tasks/${taskId}`, {
-      method: 'DELETE'
-    });
-
-    showToast('Tarefa excluída!');
-    openBoard(currentBoard.id);
+    // remove só do DOM (mais rápido)
+    const el = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (el) el.remove();
 
   } catch (e) {
     showToast(e.message, 'error');
   }
 }
-  
 // ---- INIT ----
 if (token && currentUser) showApp();
 </script>
