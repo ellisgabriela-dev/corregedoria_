@@ -333,10 +333,23 @@ let selectedUrgency = 'medio';
 
 // ---- HELPERS ----
 async function apiFetch(path, opts = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-  const r = await fetch(API + path, { headers, ...opts });
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+
+  const r = await fetch(API + path, {
+    method: opts.method || 'GET',
+    headers,
+    body: opts.body
+  });
+
   const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || 'Erro na requisição');
+
+  if (!r.ok) {
+    throw new Error(data.detail || 'Erro na requisição');
+  }
+
   return data;
 }
 
