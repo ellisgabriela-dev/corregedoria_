@@ -127,33 +127,10 @@ def delete_task(task_id):
     if not task:
         return jsonify({"detail": "Tarefa não encontrada"}), 404
 
-    # 🔒 segurança
-    if task.column.board.user_id != user_id:
+    if not task.column or not task.column.board or task.column.board.user_id != user_id:
         return jsonify({"detail": "Acesso negado"}), 403
 
     db.session.delete(task)
     db.session.commit()
 
-    return jsonify({"msg": "Deletado com sucesso"})
-
-@tasks_bp.route('/<int:task_id>', methods=['GET'])
-@jwt_required()
-def get_task(task_id):
-    user_id = get_jwt_identity()
-
-    task = Task.query.get(task_id)
-
-    if not task:
-        return jsonify({"detail": "Tarefa não encontrada"}), 404
-
-    if task.column.board.user_id != user_id:
-        return jsonify({"detail": "Acesso negado"}), 403
-
-    return jsonify({
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "urgency": task.urgency,
-        "due_date": task.due_date.isoformat() if task.due_date else None,
-        "column_id": task.column_id
-    })
+    return jsonify({"detail": "Tarefa deletada com sucesso"}), 200
