@@ -176,6 +176,14 @@
   color: #000000;
   margin-top: 20px;
   font-size: 14px;
+
+  .delete-btn {
+  background: none;
+  border: none;
+  color: #f43f5e;
+  font-size: 16px;
+  cursor: pointer;
+}
 }
 </style>
 </head>
@@ -210,7 +218,7 @@
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-logo" onclick="goHome()">Corregedoria</div>
+    <div class="topbar-logo" onclick="goHome()">Corregedoria <img src="funase.png" alt="logo funase" width="70px"></div>
     <div class="topbar-right">
       <div id="user-avatar-top" class="user-avatar"></div>
       <span id="user-name-top" style="font-size:14px; color:var(--muted)"></span>
@@ -221,7 +229,7 @@
   <!-- HOME -->
   <div id="home-view">
     <div class="home-header">
-      <h1 id="home-greeting">Olá! 👋</h1>
+      <h1 id="home-greeting">Bem vinda👋</h1>
       <p>Seus quadros de trabalho</p>
     </div>
     <div class="boards-grid" id="boards-grid">
@@ -238,7 +246,7 @@
       <button class="btn-sm" onclick="goHome()">← Quadros</button>
       <div class="board-title" id="current-board-title"></div>
       <div class="spacer"></div>
-      <button class="btn-sm primary" onclick="openNewTaskModal()">+ Tarefa</button>
+      <button class="btn-sm primary" onclick="openNewTaskModal()">+ Tarefa</button>    
     </div>
     <div class="kanban-area" id="kanban-area"></div>
   </div>
@@ -352,7 +360,6 @@ async function apiFetch(path, opts = {}) {
 
   return data;
 }
-
 function showToast(msg, type = 'success') {
   const t = document.createElement('div');
   t.className = `toast ${type}`;
@@ -380,7 +387,7 @@ async function doLogin() {
   errEl.classList.add('hidden');
 
   try {
- const data = await apiFetch('/auth/login', {
+    const data = await apiFetch('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
         email: email,
@@ -405,7 +412,7 @@ async function doRegister() {
   errEl.classList.add('hidden');
 
   try {
-   const data = await apiFetch('/auth/register', {
+    const data = await apiFetch('/auth/register', {
   method: 'POST',
   body: JSON.stringify({
     name: name,
@@ -450,15 +457,45 @@ function showApp() {
   loadGlobals();
 }
 
-async function loadGlobals() {
+async function loadBoards() {
   try {
-    demandTypes = [];
-    users = [];
+    const data = await apiFetch('/boards/');
+    const grid = document.getElementById('boards-grid');
+
+    grid.innerHTML = '';
+
+    const colors = ['#4f8ef7', '#7c5cfc', '#f43f5e', '#10b981', '#f59e0b'];
+
+    data.forEach((b, i) => {
+      const c = document.createElement('div');
+      c.className = 'board-card';
+
+      c.innerHTML = `
+        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${colors[i%colors.length]}"></div>
+        <h3>${b.title}</h3>
+        <p>${b.description || 'Sem descrição'}</p>
+        <div class="board-meta">
+          <span>📋 ${b.columns_count || 0} colunas</span>
+        </div>
+      `;
+
+      c.onclick = () => openBoard(b.id);
+      grid.appendChild(c);
+    });
+
+    grid.innerHTML += `
+      <div class="new-board-card" onclick="openNewBoardModal()">
+        <span style="font-size:22px">＋</span>
+        <span>Novo Quadro</span>
+      </div>
+    `;
+
   } catch (e) {
-    console.log("Erro:", e);
+    showToast('Erro ao carregar quadros', 'error');
+    console.error(e);
   }
 }
-
+// ---- HOME ----
 async function loadBoards() {
   try {
     const data = await apiFetch('/boards/');
@@ -501,6 +538,7 @@ async function loadBoards() {
     showToast('Erro ao carregar quadros', 'error');
   }
 }
+
 function openNewBoardModal() { openModal('new-board-modal'); document.getElementById('nb-title').value = ''; document.getElementById('nb-desc').value = ''; }
 async function createBoard() {
   const title = document.getElementById('nb-title').value.trim();
@@ -583,7 +621,7 @@ function renderTaskCard(task) {
     ? `<div class="task-assignee" style="background:${task.assignee.avatar_color}" title="${task.assignee.name}">${task.assignee.name[0]}</div>`
     : '';
 
-card.innerHTML = `
+  card.innerHTML = `
     <div class="task-card-top">
       <div class="task-title">${task.title}</div>
 
@@ -591,6 +629,8 @@ card.innerHTML = `
         style="background:none;border:none;color:#f43f5e;font-size:16px;cursor:pointer">
         🗑
       </button>
+
+      <span class="urgency-badge urgency-${task.urgency}">${urgencyLabel}</span>
     </div>
 
     ${demandHtml}
@@ -603,6 +643,23 @@ card.innerHTML = `
   `;
 
   return card;
+}
+
+async function deleteTask(taskId) {
+  if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
+
+  try {
+    await apiFetch(`/tasks/${taskId}`, { method: 'DELETE' });
+
+    showToast('Tarefa excluída com sucesso!');
+
+    // remove só do DOM (mais rápido)
+    const el = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (el) el.remove();
+
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
 }
 // ---- TASK MODAL ----
 let selectedColumnId = null;
@@ -679,13 +736,12 @@ async function deleteTask(taskId) {
   if (!confirm('Tem certeza que deseja excluir esta tarefa?')) return;
 
   try {
-    await apiFetch(`/tasks/${taskId}`, { method: 'DELETE' });
+    await apiFetch(`/tasks/${taskId}`, {
+      method: 'DELETE'
+    });
 
-    showToast('Tarefa excluída com sucesso!');
-
-    // remove só do DOM (mais rápido)
-    const el = document.querySelector(`[data-task-id="${taskId}"]`);
-    if (el) el.remove();
+    showToast('Tarefa excluída!');
+    openBoard(currentBoard.id);
 
   } catch (e) {
     showToast(e.message, 'error');
@@ -700,4 +756,3 @@ if (token && currentUser) showApp();
 </footer>
 </body>
 </html>
-
