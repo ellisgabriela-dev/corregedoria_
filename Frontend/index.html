@@ -367,11 +367,11 @@ async function doLogin() {
   errEl.classList.add('hidden');
 
   try {
-    const data = await apiFetch('/auth/login', {
+ const data = await apiFetch('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
-        Usuario: name,
-        Senha: pass
+        email: "tatiana@corregedoria",
+        password: "123456"
       })
     });
 
@@ -393,14 +393,13 @@ async function doRegister() {
 
   try {
     const data = await apiFetch('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: name,
-        username: username,   // 👈 IMPORTANTE
-        password: pass
-      })
-    });
-
+  method: 'POST',
+  body: JSON.stringify({
+    name: "Tatiana",
+    email: "tatiana@corregedora"
+    password: "123456"
+  })
+});
     setSession(data);
 
   } catch (e) {
