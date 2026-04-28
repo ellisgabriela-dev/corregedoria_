@@ -459,11 +459,7 @@ async function loadGlobals() {
   }
 }
 
-// ---- HOME ----
-// ---- HOME ----
 async function loadBoards() {
-  try {
-    async function loadBoards() {
   try {
     const data = await apiFetch('/boards/');
     
@@ -490,7 +486,7 @@ async function loadBoards() {
       grid.appendChild(c);
     });
 
-    // ✅ AGORA DENTRO DA FUNÇÃO
+    // botão novo quadro
     grid.innerHTML += `
       <div class="new-board-card" onclick="openNewBoardModal()">
         <span style="font-size:22px">＋</span>
@@ -505,7 +501,6 @@ async function loadBoards() {
     showToast('Erro ao carregar quadros', 'error');
   }
 }
-
 function openNewBoardModal() { openModal('new-board-modal'); document.getElementById('nb-title').value = ''; document.getElementById('nb-desc').value = ''; }
 async function createBoard() {
   const title = document.getElementById('nb-title').value.trim();
