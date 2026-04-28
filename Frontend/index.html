@@ -370,8 +370,8 @@ async function doLogin() {
     const data = await apiFetch('/auth/login', {
       method: 'POST',
       body: JSON.stringify({
-        Usuario: Tatiana,
-        Senha: 123456
+        Usuario: name,
+        Senha: pass
       })
     });
 
@@ -395,9 +395,9 @@ async function doRegister() {
     const data = await apiFetch('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
-        name: Tatiana,
-        username: Tatiana,   // 👈 IMPORTANTE
-        password: 123456
+        name: name,
+        username: username,   // 👈 IMPORTANTE
+        password: pass
       })
     });
 
