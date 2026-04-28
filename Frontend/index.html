@@ -460,32 +460,37 @@ async function loadGlobals() {
 }
 
 // ---- HOME ----
+// ---- HOME ----
 async function loadBoards() {
   try {
+    async function loadBoards() {
+  try {
     const data = await apiFetch('/boards/');
-    const grid = document.getElementById('boards-grid');
+    
+    console.log("RETORNO BACKEND:", data);
 
+    const grid = document.getElementById('boards-grid');
     grid.innerHTML = '';
 
-    const colors = ['#4f8ef7', '#7c5cfc', '#f43f5e', '#10b981', '#f59e0b'];
+    if (!data || data.length === 0) {
+      console.log("Nenhum quadro encontrado");
+    }
 
     data.forEach((b, i) => {
+      console.log("Renderizando board:", b);
+
       const c = document.createElement('div');
       c.className = 'board-card';
 
       c.innerHTML = `
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${colors[i%colors.length]}"></div>
         <h3>${b.title}</h3>
         <p>${b.description || 'Sem descrição'}</p>
-        <div class="board-meta">
-          <span>📋 ${b.columns_count || 0} colunas</span>
-        </div>
       `;
 
-      c.onclick = () => openBoard(b.id);
       grid.appendChild(c);
     });
 
+    // ✅ AGORA DENTRO DA FUNÇÃO
     grid.innerHTML += `
       <div class="new-board-card" onclick="openNewBoardModal()">
         <span style="font-size:22px">＋</span>
@@ -493,9 +498,11 @@ async function loadBoards() {
       </div>
     `;
 
+    grid.style.border = "2px solid red";
+
   } catch (e) {
+    console.error("ERRO REAL:", e);
     showToast('Erro ao carregar quadros', 'error');
-    console.error(e);
   }
 }
 
