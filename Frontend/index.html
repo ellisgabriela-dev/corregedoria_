@@ -490,7 +490,7 @@ async function createBoard() {
     const b = await apiFetch('/boards/', { method: 'POST', body: JSON.stringify({ title, description: document.getElementById('nb-desc').value }) });
     closeModal('new-board-modal');
     showToast('Quadro criado!');
-    openBoard(b.id);
+    console.log(b);
   } catch (e) { showToast(e.message, 'error'); }
 }
 
